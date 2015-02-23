@@ -17,8 +17,8 @@ import javafx.stage.DirectoryChooser;
 import ru.phoenix.trackcreator.entity.Location;
 import ru.phoenix.trackcreator.entity.Point;
 import ru.phoenix.trackcreator.entity.SurveyData;
-import ru.phoenix.trackcreator.exceptions.TrackCreateException;
 import ru.phoenix.trackcreator.helpers.TrackCreatorHelper;
+import ru.phoenix.trackcreator.helpers.TrackHelper;
 import ru.phoenix.trackcreator.ui.WizardPage;
 
 import java.io.File;
@@ -95,19 +95,26 @@ public class ThirdPage extends WizardPage {
         save.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
+                ArrayList<Location> trackPoints2 = SurveyData.instance.getTrackPoints2();
+                trackPoints2.clear();
+                for (Point point : data) {
+                    trackPoints2.add(point.getLocation());
+                }
+
+                String title = "Создания файла трека";
                 try {
-                    final TrackCreatorHelper trackCreatorHelper = new TrackCreatorHelper(data);
-                    trackCreatorHelper.save(saveDir.getText(), SurveyData.instance.getTrackDate2(), true);
+                    TrackCreatorHelper.saveTrack(
+                            TrackHelper.addRandomPauseForNamedPoints(trackPoints2),
+                            saveDir.getText()
+                    );
 
-                    ArrayList<Point> data1 = new ArrayList<Point>();
-                    for (Location point : SurveyData.instance.getTrackPoints1()) data1.add(new Point(point));
-                    final TrackCreatorHelper trackCreatorHelper1 = new TrackCreatorHelper(data1);
-                    trackCreatorHelper1.save(saveDir.getText(), SurveyData.instance.getTrackDate1(), true);
-
-                    viewAlertDialog("Создания файла трека", "Файл успешно создан и сохранен");
-                } catch (TrackCreateException e) {
-                    viewAlertDialog("Ошибка создания файла трека", e.getMessage());
-                    e.printStackTrace();
+                    TrackCreatorHelper.saveTrack(
+                            TrackHelper.addRandomPauseForNamedPoints(SurveyData.instance.getTrackPoints1()),
+                            saveDir.getText()
+                    );
+                    viewAlertDialog(title, "Файл успешно создан и сохранен");
+                } catch (Exception ex) {
+                    viewAlertDialog(title, ex.getMessage());
                 }
             }
         });

@@ -10,21 +10,15 @@ import java.util.Date;
 * @version 1.0
 */
 public class Point {
+    private final Location location;
     private final SimpleStringProperty lat;
     private final SimpleStringProperty lng;
     private final SimpleStringProperty ele;
     private final SimpleStringProperty time;
     private final SimpleStringProperty name;
 
-    public Point(double lat, double lng, double ele, Date time, String name) {
-        this.lat = new SimpleStringProperty(String.format("%3.10f", lat).replaceAll(",", "."));
-        this.lng = new SimpleStringProperty(String.format("%3.10f", lng).replaceAll(",", "."));
-        this.ele = new SimpleStringProperty(String.format("%3.2f", ele).replaceAll(",", "."));
-        this.time = new SimpleStringProperty(TrackHelper.getTrackTime(time));
-        this.name = new SimpleStringProperty(name);
-    }
-
     public Point(Location location) {
+        this.location = location;
         this.lat = new SimpleStringProperty(String.format("%3.10f", location.getLat()).replaceAll(",", "."));
         this.lng = new SimpleStringProperty(String.format("%3.10f", location.getLon()).replaceAll(",", "."));
         this.ele = new SimpleStringProperty(String.format("%3.2f", location.getEle()).replaceAll(",", "."));
@@ -52,20 +46,8 @@ public class Point {
         return name.get();
     }
 
-    public void setEle(String ele) {
-        this.ele.set(ele);
-    }
-
-    public void setLat(String lat) {
-        this.lat.set(lat);
-    }
-
-    public void setLng(String lng) {
-        this.lng.set(lng);
-    }
-
-    public void setTime(String time) {
-        this.time.set(time);
+    public Location getLocation() {
+        return location;
     }
 
     public void setName(String name) {
@@ -73,6 +55,7 @@ public class Point {
             name = name.substring(0, 50);
         }
         this.name.set(name);
+        location.setName(name);
     }
 
     public SimpleStringProperty eleProperty() {

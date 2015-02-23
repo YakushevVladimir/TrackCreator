@@ -21,10 +21,6 @@ public class Location {
         this(lat, lon, name, 0d);
     }
 
-    public Location(double lat, double lon, double ele) {
-        this(lat, lon, "", ele);
-    }
-
     public Location(double lat, double lon, String name, double ele) {
         this.lat = lat;
         this.lon = lon;
@@ -73,7 +69,7 @@ public class Location {
     }
 
     @Override
-    protected Object clone() {
+    public Location clone() {
         return new Location(lat, lon, name, ele, time);
     }
 

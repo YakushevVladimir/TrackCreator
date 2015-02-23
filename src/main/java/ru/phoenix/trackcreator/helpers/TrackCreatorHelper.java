@@ -2,6 +2,7 @@ package ru.phoenix.trackcreator.helpers;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import ru.phoenix.trackcreator.entity.Location;
 import ru.phoenix.trackcreator.entity.Point;
 import ru.phoenix.trackcreator.entity.SurveyData;
 import ru.phoenix.trackcreator.exceptions.TrackCreateException;
@@ -28,6 +29,10 @@ public class TrackCreatorHelper {
 
     public TrackCreatorHelper(List<Point> points) {
         this.points = points;
+    }
+
+    public static void saveTrack(ArrayList<Location> track, String path) {
+
     }
 
     public void save(String dirPath, Date trackDate, boolean createTrackPoints) throws TrackCreateException {

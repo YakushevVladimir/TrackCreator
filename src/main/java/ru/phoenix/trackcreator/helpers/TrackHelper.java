@@ -8,8 +8,11 @@ import ru.phoenix.trackcreator.entity.SurveyData;
 import ru.phoenix.trackcreator.exceptions.TrackCreateException;
 
 import java.io.*;
+import java.lang.String;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.ArrayList;
 
 /**
  * @author Vladimir Yakushev
@@ -17,10 +20,12 @@ import java.util.*;
  */
 public class TrackHelper {
 
+    public static final String TRACK_TIME_FORMAT = "yyyy-MM-dd'T'HH:mm:ss'Z'";
+    public static final String POINT_NAMES_HASH_PATTERN = "%s_%s";
+
     private static final int MAX_URI_API_LENGTH = 1900;
     private static final String GOOGLE_API_URL_PATTERN = "http://maps.googleapis.com/maps/api/elevation/json?locations=%s";
     private static final int MAX_API_POINTS = 512;
-    public static final String POINT_NAMES_HASH_PATTERN = "%s_%s";
 
     public static boolean addLocationFromString(String trackList) throws TrackCreateException {
         String[] locations = trackList.split(";");
@@ -78,6 +83,46 @@ public class TrackHelper {
         }
     }
 
+    public static ArrayList<Location> addRandomPauseForNamedPoints(ArrayList<Location> track) throws ParseException {
+        ArrayList<Location> result = new ArrayList<Location>();
+        int offset = 0;
+        int maxIndex = track.size() - 1;
+        for (int i = 0; i < track.size(); i++) {
+            Location point = track.get(i);
+            if (i == 0 || i == maxIndex || "".equals(point.getName())) {
+                addPointWithOffset(point, offset, result);
+            } else {
+                int pauses = (int) (Math.random() * 3) + 2;
+                int startPauses = pauses - (int) (Math.random() * pauses);
+                offset = addPauses(startPauses, point, result, offset);
+                offset += getRandomTimeLaps();
+                addPointWithOffset(point, offset, result);
+                offset = addPauses(pauses - startPauses, point, result, offset);
+            }
+        }
+        return track;
+    }
+
+    private static int addPauses(int count, Location point, ArrayList<Location> result, int offset) throws ParseException {
+        if (count == 0) return offset;
+        addPointWithOffset(point, offset, result);
+        for (int i = 1; i < count; i++) {
+            offset += getRandomTimeLaps();
+            addPointWithOffset(point, offset, result);
+        }
+        return offset;
+    }
+
+    private static void addPointWithOffset(Location point, int offset, ArrayList<Location> result) throws ParseException {
+        Calendar cal = new GregorianCalendar();
+        cal.setTime(point.getTime());
+        cal.add(Calendar.SECOND, offset);
+
+        Location newPoint = point.clone();
+        newPoint.setTime(cal.getTime());
+        result.add(point);
+    }
+
     private static boolean createTrack(ArrayList<Location> trackPoints) throws TrackCreateException {
         if (trackPoints.size() == 0) {
             throw new TrackCreateException("Не удалось получить маршрутные точки из указанного файла!");
@@ -87,17 +132,17 @@ public class TrackHelper {
 
         // Построение трека
 
+        // дробим маршрут между двумя точками на отрезки с отклонением в заданном радиусе
         trackPoints = splitTrackAtPointsDistance(trackPoints, 500, 75);
         trackPoints = splitTrackAtPointsDistance(trackPoints, 250, 20);
         trackPoints = splitTrackAtPointsDistance(trackPoints, 125, 5);
         trackPoints = splitTrackAtPointsDistance(trackPoints, 10, 5);
 
         // Сохраняем полученный трек как базовый
-
         SurveyData.instance.setBaseTrack(trackPoints);
 
-        // Получаем данные о высоте с шагом в 50 метров
-
+        // Получаем данные о высоте с шагом в 50 метров. Полученную высоту в последующем
+        // будем испльзовать для расчета изменения скорости
         ArrayList<Location> points = new ArrayList<Location>();
         int counter = 0;
         final int maxIndex = trackPoints.size() - 1;
@@ -108,11 +153,13 @@ public class TrackHelper {
         }
         ArrayList<Location> elePoints = getElevation(points);
 
+        // Создаем маршрут первого дня
         trackPoints =  SurveyData.instance.getBaseTrack();
         trackPoints = splitTrackAtPointsDistance(trackPoints, 1, 1);
         SurveyData.instance.setTrackPoints1(getElevation(
                 createFinalTrack(SurveyData.instance.getTrackDate1(), trackPoints, elePoints)));
 
+        // Создаем маршрут второго дня
         trackPoints =  SurveyData.instance.getBaseTrack();
         trackPoints = splitTrackAtPointsDistance(trackPoints, 1, 1);
         SurveyData.instance.setTrackPoints2(getElevation(
@@ -121,13 +168,13 @@ public class TrackHelper {
         return true;
     }
 
-    private static ArrayList<Location> createFinalTrack(Date startTime, ArrayList<Location> track, ArrayList<Location> elePoints) {
+    private static ArrayList<Location> createFinalTrack(Date startTime, ArrayList<Location> baseTrack, ArrayList<Location> elePoints) {
         ArrayList<Location> result = new ArrayList<Location>();
-        ArrayList<Location> baseTrack = track;
 
         double prevEle = elePoints.get(0).getEle();
         double currEle = prevEle;
 
+        // средняя скорость в м/с
         final double speed = SurveyData.instance.getTrackSpeed() * 0.277777778f;
 
         Calendar cal = new GregorianCalendar();
@@ -139,34 +186,49 @@ public class TrackHelper {
         while (counter <= maxIndex) {
             Location point = baseTrack.get(counter);
 
+            // Читаем высоту текущей точки
+            int index = elePoints.indexOf(point);
+            if (index >= 0) {
+                prevEle = currEle;
+                currEle = elePoints.get(index).getEle();
+            }
+
+            // Добавляем или пропускаем точку в зависимости от условий
+
             if (counter == 0 || counter == maxIndex) {
+                // Добавляем время разгона или остановки для начальной
+                // и конечной точек маршрута
                 if (counter == 0) addPointWithTime(result, point, cal.getTime());
                 addPauseInTrack(result, cal, new Location(point.getLat(), point.getLon()));
                 if (counter == maxIndex) addPointWithTime(result, point, cal.getTime());
                 counter++;
                 continue;
             } else if (dist > 0 && "".equals(point.getName())) {
+                // если точка не именная, то пропускаем её
                 dist--;
                 counter++;
                 continue;
-            }
-
-            if (!"".equals(point.getName())) {
-                addNamedPoint(result, point, cal);
             } else {
+                // добавляем точку и может юыть несколько рандомных пауз
                 addPointWithRandom(result, cal, point);
             }
 
+            // Вычисляем время и расстояние до следующей точки. В результате получаем число
+            // вычленяемых точек
+
+
+            // время следующей точки
             int timeLaps = getRandomTimeLaps();
             cal.add(Calendar.SECOND, timeLaps);
 
+            // расстояние пройденное за это время с учетом заданной средней скорости, плюс
+            // случайное отклонение от скорости в пределах 10%
             dist = (int) (timeLaps * (speed + (speed * Math.random() / 10 * (Math.random() > 0.5 ? 1 : -1))));
-            int index = elePoints.indexOf(point);
-            if (index >= 0) {
-                prevEle = currEle;
-                currEle = elePoints.get(index).getEle();
-                dist = (int) (dist * (prevEle / currEle));
-            }
+            // Увеличение или уменьшение пройденного расстояния в зависимости от изменения ландшафта
+            dist = (int) (dist * (prevEle / currEle));
+
+            // так как мы не можем вычленять именнованные точки, то либо пропускаем заданное
+            // количество точек в цикле, либо добавляем следующую именную точку
             counter++;
         }
 
@@ -179,22 +241,6 @@ public class TrackHelper {
         if (percent > 95) {
             addPauseInTrack(result, cal, new Location(point.getLat(), point.getLon()));
         }
-    }
-
-    private static void addNamedPoint(ArrayList<Location> result, Location point, Calendar cal) {
-        // точка без имени, но в том же месте
-        int numPoints = (int) (Math.random() * 2) + 1;
-        for (int i = 0; i < numPoints; i++) {
-            addPointWithTime(result, new Location(point.getLat(), point.getLon()), cal.getTime());
-            cal.add(Calendar.SECOND, getRandomTimeLaps());
-        }
-
-        // точка с именем
-        addPointWithTime(result, point, cal.getTime());
-
-        // точка без имени, но в том же месте
-        cal.add(Calendar.SECOND, getRandomTimeLaps());
-        addPointWithTime(result, new Location(point.getLat(), point.getLon()), cal.getTime());
     }
 
     private static void addPauseInTrack(ArrayList<Location> result, Calendar cal, Location point) {
@@ -346,7 +392,7 @@ public class TrackHelper {
     }
 
     public static String getTrackTime(Date time) {
-        SimpleDateFormat formater = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+        SimpleDateFormat formater = new SimpleDateFormat(TRACK_TIME_FORMAT);
         formater.setTimeZone(TimeZone.getTimeZone("GMT"));
         return formater.format(time);
     }
