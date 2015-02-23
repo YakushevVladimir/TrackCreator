@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<gpx xmlns="http://www.topografix.com/GPX/1/1"
+     creator="Astro 320"
+     version="1.1"
+     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+     xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd">
+    <metadata>
+        <link href="http://www.garmin.com">
+            <text>Garmin International</text>
+        </link>
+        <time>2013-09-25T13:00:31Z</time>
+    </metadata>
+    <wpt lat="54.736504" lon="61.012962">
+        <ele>272.296387</ele>
+        <time>2013-09-25T13:00:31Z</time>
+        <name>НОРЫ БАРСУЧИЕ ДОЛГОВКА</name>
+        <sym>Flag, Blue</sym>
+    </wpt>
+</gpx>

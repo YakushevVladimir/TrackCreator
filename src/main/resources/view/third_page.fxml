@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.Font?>
+<VBox prefWidth="500.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
+   <children>
+      <Label alignment="TOP_LEFT" maxWidth="1.7976931348623157E308" text="Укажите, если необходимо имена для точек маршрута. Точки с именами будут сохранены в виде отдельных файлов" wrapText="true">
+         <VBox.margin>
+            <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+         </VBox.margin>
+         <font>
+            <Font size="11.0" />
+         </font>
+      </Label>
+      <TableView fx:id="pointsTable" editable="true" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" VBox.vgrow="ALWAYS">
+        <columns>
+            <TableColumn fx:id="time" editable="false" minWidth="75.0" prefWidth="150.0" text="Время" />
+            <TableColumn fx:id="lat" editable="false" maxWidth="200.0" minWidth="50.0" prefWidth="100.0" sortable="false" text="Широта" />
+            <TableColumn fx:id="lng" editable="false" maxWidth="200.0" minWidth="50.0" prefWidth="100.0" sortable="false" text="Долгота" />
+            <TableColumn fx:id="name" prefWidth="150.0" text="Имя" />
+        </columns>
+      </TableView>
+      <HBox>
+         <children>
+            <Label maxHeight="1.7976931348623157E308" text="Сохранить в:">
+               <padding>
+                  <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+               </padding>
+            </Label>
+            <TextField fx:id="saveDir" editable="false" maxWidth="1.7976931348623157E308" promptText="Выберите папку для сохранения файлов" HBox.hgrow="ALWAYS">
+               <HBox.margin>
+                  <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+               </HBox.margin>
+            </TextField>
+            <Button fx:id="choiseDir" mnemonicParsing="false" text="Выбрать...">
+               <HBox.margin>
+                  <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+               </HBox.margin>
+            </Button>
+            <Button fx:id="save" disable="true" mnemonicParsing="false" text="Сохранить">
+               <HBox.margin>
+                  <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+               </HBox.margin>
+            </Button>
+         </children>
+         <padding>
+            <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+         </padding>
+      </HBox>
+   </children>
+</VBox>

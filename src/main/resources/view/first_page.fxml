@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import javafx.geometry.*?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<GridPane hgap="5.0" maxHeight="-Infinity" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" prefWidth="500.0" vgap="5.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
+    <columnConstraints>
+        <ColumnConstraints halignment="LEFT" hgrow="SOMETIMES" minWidth="10.0" />
+        <ColumnConstraints hgrow="SOMETIMES" maxWidth="1.7976931348623157E308" minWidth="10.0" prefWidth="100.0" />
+        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="50.0" />
+        <ColumnConstraints hgrow="SOMETIMES" maxWidth="1.7976931348623157E308" minWidth="10.0" prefWidth="100.0" />
+    </columnConstraints>
+    <rowConstraints>
+        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+    </rowConstraints>
+    <padding>
+        <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+    </padding>
+    <children>
+        <Label text="Маршрут:" />
+        <TextField fx:id="trackName" prefHeight="26.0" prefWidth="435.0" promptText="Укажите название маршрута" GridPane.columnIndex="1" GridPane.columnSpan="3" />
+        <Label text="Устройство:" GridPane.rowIndex="1" />
+        <TextField fx:id="trackDevice" promptText="Укажите название GPS-навигатора" GridPane.columnIndex="1" GridPane.columnSpan="3" GridPane.rowIndex="1" />
+        <Label text="Дата (1):" GridPane.rowIndex="2" />
+        <DatePicker fx:id="trackDate1" promptText="Дата маршрута" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+        <Label text="Время (старт):" GridPane.columnIndex="2" GridPane.rowIndex="2" />
+        <GridPane hgap="4.0" GridPane.columnIndex="3" GridPane.rowIndex="2">
+            <columnConstraints>
+                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                <ColumnConstraints halignment="CENTER" hgrow="SOMETIMES" minWidth="10.0" />
+                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                <ColumnConstraints halignment="CENTER" hgrow="SOMETIMES" minWidth="10.0" />
+                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+            </columnConstraints>
+            <rowConstraints>
+                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+            </rowConstraints>
+            <children>
+                <TextField fx:id="trackHour1" alignment="CENTER" promptText="Ч" />
+                <TextField fx:id="trackMinute1" alignment="CENTER" promptText="М" GridPane.columnIndex="2" />
+                <TextField fx:id="trackSecond1" alignment="CENTER" promptText="С" GridPane.columnIndex="4" />
+                <Label text=":" textAlignment="CENTER" GridPane.columnIndex="1">
+                    <padding>
+                        <Insets bottom="2.0" left="2.0" right="2.0" top="2.0" />
+                    </padding>
+                </Label>
+                <Label text=":" GridPane.columnIndex="3">
+                    <padding>
+                        <Insets bottom="2.0" left="2.0" right="2.0" top="2.0" />
+                    </padding>
+                </Label>
+            </children>
+        </GridPane>
+        <Label text="Дата (2):" GridPane.rowIndex="3" />
+        <DatePicker fx:id="trackDate2" promptText="Дата маршрута" GridPane.columnIndex="1" GridPane.rowIndex="3" />
+        <Label text="Время (старт):" GridPane.columnIndex="2" GridPane.rowIndex="3" />
+        <GridPane hgap="4.0" GridPane.columnIndex="3" GridPane.rowIndex="3">
+            <children>
+                <TextField fx:id="trackHour2" alignment="CENTER" promptText="Ч" />
+                <TextField fx:id="trackMinute2" alignment="CENTER" promptText="М" GridPane.columnIndex="2" />
+                <TextField fx:id="trackSecond2" alignment="CENTER" promptText="С" GridPane.columnIndex="4" />
+                <Label text=":" textAlignment="CENTER" GridPane.columnIndex="1">
+                    <padding>
+                        <Insets bottom="2.0" left="2.0" right="2.0" top="2.0" />
+                    </padding>
+                </Label>
+                <Label text=":" GridPane.columnIndex="3">
+                    <padding>
+                        <Insets bottom="2.0" left="2.0" right="2.0" top="2.0" />
+                    </padding>
+                </Label>
+            </children>
+            <columnConstraints>
+                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                <ColumnConstraints halignment="CENTER" hgrow="SOMETIMES" minWidth="10.0" />
+                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                <ColumnConstraints halignment="CENTER" hgrow="SOMETIMES" minWidth="10.0" />
+                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+            </columnConstraints>
+            <rowConstraints>
+                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+            </rowConstraints>
+        </GridPane>
+        <Label text="Скорость:" GridPane.rowIndex="4" />
+        <TextField fx:id="trackSpeed" promptText="км/ч" GridPane.columnIndex="1" GridPane.rowIndex="4" />
+        <Label text="Оборотов/мин.:" GridPane.columnIndex="2" GridPane.rowIndex="4" />
+        <TextField fx:id="trackCad" promptText="число от 1 до 254" GridPane.columnIndex="3" GridPane.rowIndex="4" />
+    </children>
+</GridPane>

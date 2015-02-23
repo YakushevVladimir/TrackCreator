@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<gpx xmlns="http://www.topografix.com/GPX/1/1"
+     xmlns:gpxx="http://www.garmin.com/xmlschemas/WaypointExtension/v1"
+     xmlns:gpxtrx="http://www.garmin.com/xmlschemas/GpxExtensions/v3"
+     xmlns:gpxtpx="http://www.garmin.com/xmlschemas/TrackPointExtension/v1"
+     creator="GPSMAP 62s"
+     version="1.1"
+     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+     xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd http://www.garmin.com/xmlschemas/WaypointExtension/v1 http://www8.garmin.com/xmlschemas/WaypointExtensionv1.xsd http://www.garmin.com/xmlschemas/TrackPointExtension/v1 http://www.garmin.com/xmlschemas/TrackPointExtensionv1.xsd">
+    <metadata>
+        <link href="http://www.garmin.com">
+            <text>Garmin International</text>
+        </link>
+        <time>2015-02-04T06:18:32Z</time>
+    </metadata>
+    <wpt lat="56.292460" lon="59.331285">
+        <ele>350.493591</ele>
+        <time>2015-02-04T06:18:32Z</time>
+        <name>023</name>
+        <sym>Flag, Blue</sym>
+    </wpt>
+    <wpt lat="56.291451" lon="59.345055">
+        <ele>369.708252</ele>
+        <time>2015-02-04T06:31:05Z</time>
+        <name>024</name>
+        <sym>Flag, Blue</sym>
+    </wpt>
+    <wpt lat="56.291545" lon="59.346365">
+        <ele>371.188293</ele>
+        <time>2015-02-04T06:32:50Z</time>
+        <name>025</name>
+        <sym>Flag, Blue</sym>
+    </wpt>
+    <wpt lat="56.291733" lon="59.349060">
+        <ele>378.509247</ele>
+        <time>2015-02-04T06:35:23Z</time>
+        <name>026</name>
+        <sym>Flag, Blue</sym>
+    </wpt>
+    <wpt lat="56.294204" lon="59.367306"><ele>401.728973</ele><time>2015-02-04T06:46:23Z</time><name>027</name><sym>Flag, Blue</sym></wpt>
+    <wpt lat="56.296773" lon="59.396113"><ele>487.250885</ele><time>2015-02-04T07:05:25Z</time><name>028</name><sym>Flag, Blue</sym></wpt>
+    <wpt lat="56.288804" lon="59.425238"><ele>631.461670</ele><time>2015-02-04T07:34:29Z</time><name>029</name><sym>Flag, Blue</sym></wpt>
+    <wpt lat="56.283895" lon="59.445428"><ele>585.836060</ele><time>2015-02-04T07:45:47Z</time><name>030</name><sym>Flag, Blue</sym></wpt>
+    <wpt lat="56.282712" lon="59.454567"><ele>544.654175</ele><time>2015-02-04T07:52:14Z</time><name>031</name><sym>Flag, Blue</sym></wpt>
+    <wpt lat="56.218606" lon="59.388189"><ele>341.331390</ele><time>2015-02-04T11:01:53Z</time><name>032</name><sym>Flag, Blue</sym></wpt>
+</gpx>

@@ -1,0 +1,248 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="trackcreator" default="all">
+
+    <property file="trackcreator.properties"/>
+
+    <property name="JAVA_HOME" value="C:\Program Files (x86)\Java\jdk1.8.0_31"/>
+
+    <property name="app.name" value="trackcreator"/>
+    <property name="app.title" value="TrackCreator"/>
+    <property name="app.vendor" value="Vladimir Yakushev"/>
+
+    <!-- Compiler options -->
+
+    <property name="compiler.debug" value="on"/>
+    <property name="compiler.generate.no.warnings" value="off"/>
+    <property name="compiler.args" value=""/>
+    <property name="compiler.max.memory" value="700m"/>
+    <patternset id="ignored.files">
+        <exclude name="**/CVS/**"/>
+        <exclude name="**/SCCS/**"/>
+        <exclude name="**/RCS/**"/>
+        <exclude name="**/rcs/**"/>
+        <exclude name="**/.DS_Store/**"/>
+        <exclude name="**/.svn/**"/>
+        <exclude name="**/.pyc/**"/>
+        <exclude name="**/.pyo/**"/>
+        <exclude name="**/*.pyc/**"/>
+        <exclude name="**/*.pyo/**"/>
+        <exclude name="**/.git/**"/>
+        <exclude name="**/*.hprof/**"/>
+        <exclude name="**/_svn/**"/>
+        <exclude name="**/.hg/**"/>
+        <exclude name="**/*.lib/**"/>
+        <exclude name="**/*~/**"/>
+        <exclude name="**/__pycache__/**"/>
+        <exclude name="**/.bundle/**"/>
+        <exclude name="**/*.rbc/**"/>
+        <exclude name="**/vssver.scc/**"/>
+        <exclude name="**/vssver2.scc/**"/>
+    </patternset>
+    <patternset id="library.patterns">
+        <include name="*.war"/>
+        <include name="*.ear"/>
+        <include name="*.apk"/>
+        <include name="*.zip"/>
+        <include name="*.swc"/>
+        <include name="*.ane"/>
+        <include name="*.egg"/>
+        <include name="*.jar"/>
+    </patternset>
+    <patternset id="compiler.resources">
+        <exclude name="**/?*.java"/>
+        <exclude name="**/?*.form"/>
+        <exclude name="**/?*.class"/>
+        <exclude name="**/?*.groovy"/>
+        <exclude name="**/?*.scala"/>
+        <exclude name="**/?*.flex"/>
+        <exclude name="**/?*.kt"/>
+        <exclude name="**/?*.clj"/>
+    </patternset>
+
+    <property name="src.dir" value="${basedir}/src"/>
+    <property name="lib.dir" value="${basedir}/libs"/>
+
+    <property name="build.dir" value="out"/>
+    <property name="classes.dir" value="${build.dir}/classes"/>
+    <property name="distro.dir" value="${build.dir}/artifacts"/>
+
+    <!-- Project Libraries -->
+
+    <path id="library.libs.classpath">
+        <pathelement location="${basedir}/libs/gson-2.3.1.jar"/>
+    </path>
+
+    <path id="classpath">
+        <fileset dir="${lib.dir}" includes="**/*.jar"/>
+    </path>
+
+    <!-- Modules -->
+
+
+    <!-- Module TrackCreator -->
+
+    <dirname property="module.trackcreator.basedir" file="${ant.file}"/>
+
+    <property name="compiler.args.trackcreator" value="-encoding UTF-8 -source 1.6 ${compiler.args}"/>
+
+    <property name="trackcreator.output.dir" value="${module.trackcreator.basedir}/out/production/TrackCreator"/>
+
+    <path id="trackcreator.module.bootclasspath">
+        <!-- Paths to be included in compilation bootclasspath -->
+    </path>
+
+    <path id="trackcreator.module.production.classpath">
+        <path refid="library.libs.classpath"/>
+    </path>
+
+    <path id="trackcreator.runtime.production.module.classpath">
+        <pathelement location="${trackcreator.output.dir}"/>
+        <path refid="library.libs.classpath"/>
+    </path>
+
+    <path id="trackcreator.module.classpath">
+        <pathelement location="${trackcreator.output.dir}"/>
+        <path refid="library.libs.classpath"/>
+    </path>
+
+    <path id="trackcreator.runtime.module.classpath">
+        <pathelement location="${trackcreator.output.dir}"/>
+        <path refid="library.libs.classpath"/>
+    </path>
+
+
+    <patternset id="excluded.from.module.trackcreator">
+        <patternset refid="ignored.files"/>
+    </patternset>
+
+    <patternset id="excluded.from.compilation.trackcreator">
+        <patternset refid="excluded.from.module.trackcreator"/>
+    </patternset>
+
+    <path id="trackcreator.module.sourcepath">
+        <dirset dir="${module.trackcreator.basedir}">
+            <include name="src/main/java"/>
+            <include name="src/main/resources"/>
+        </dirset>
+    </path>
+
+
+    <target name="compile">
+        <mkdir dir="${classes.dir}"/>
+        <javac target="1.5" srcdir="${src.dir}" destdir="${classes.dir}" classpathref="classpath"/>
+    </target>
+
+    <target name="-pre-jar" depends="compile">
+        <unzip src="${lib.dir}/gson-2.3.1.jar" dest="${classes.dir}"/>
+    </target>
+
+    <target name="compile.module.trackcreator"
+        depends="compile.module.trackcreator.production"
+        description="Compile module TrackCreator"/>
+
+    <target name="compile.module.trackcreator.production" depends="-pre-jar"
+        description="Compile module TrackCreator; production classes">
+        <mkdir dir="${trackcreator.output.dir}"/>
+        <javac destdir="${trackcreator.output.dir}" debug="${compiler.debug}" nowarn="${compiler.generate.no.warnings}" memorymaximumsize="${compiler.max.memory}" fork="true">
+            <compilerarg line="${compiler.args.trackcreator}"/>
+            <bootclasspath refid="trackcreator.module.bootclasspath"/>
+            <classpath refid="trackcreator.module.production.classpath"/>
+            <src refid="trackcreator.module.sourcepath"/>
+            <patternset refid="excluded.from.compilation.trackcreator"/>
+        </javac>
+
+        <copy todir="${trackcreator.output.dir}">
+            <fileset dir="${module.trackcreator.basedir}/src/main/java">
+                <patternset refid="compiler.resources"/>
+                <type type="file"/>
+            </fileset>
+            <fileset dir="${module.trackcreator.basedir}/src/main/resources">
+                <patternset refid="compiler.resources"/>
+                <type type="file"/>
+            </fileset>
+            <fileset dir="${classes.dir}/">
+                <include name="**"/>
+            </fileset>
+        </copy>
+    </target>
+
+    <target name="clean.module.trackcreator" description="cleanup module">
+        <delete dir="${trackcreator.output.dir}"/>
+    </target>
+
+    <target name="init" description="Build initialization">
+        <!-- Perform any build initialization in this target -->
+    </target>
+
+    <target name="clean" depends="clean.module.trackcreator, clean.artifact.trackcreator" description="cleanup all"/>
+
+    <target name="build.modules" depends="init, clean, compile.module.trackcreator" description="build all modules"/>
+
+    <property name="artifact.output.trackcreator" value="${basedir}/out/artifacts/TrackCreator"/>
+
+    <target name="init.artifacts">
+        <property name="artifacts.temp.dir" value="${basedir}/__artifacts_temp"/>
+        <mkdir dir="${artifacts.temp.dir}"/>
+        <property name="artifact.temp.output.TrackCreator" value="${artifacts.temp.dir}/TrackCreator.jar"/>
+        <taskdef resource="com/sun/javafx/tools/ant/antlib.xml" uri="javafx:com.sun.javafx.tools.ant" classpath="${JAVA_HOME}/lib/ant-javafx.jar"/>
+    </target>
+
+    <target name="clean.artifact.trackcreator" description="clean TrackCreator artifact output">
+        <delete dir="${artifact.output.trackcreator}"/>
+    </target>
+
+    <target name="artifact.trackcreator"
+        depends="init.artifacts, compile.module.trackcreator"
+        description="Build &#39;TrackCreator&#39; artifact"
+        xmlns:fx="javafx:com.sun.javafx.tools.ant">
+
+        <mkdir dir="${artifact.output.trackcreator}"/>
+        <copy todir="${artifact.temp.output.TrackCreator}">
+            <fileset dir="${trackcreator.output.dir}"/>
+        </copy>
+        <fx:fileset id="all_but_TrackCreator" dir="${artifact.temp.output.TrackCreator}" includes="**/*.jar">
+            <exclude name="TrackCreator.jar"/>
+        </fx:fileset>
+        <fx:fileset id="all_TrackCreator" dir="${artifact.temp.output.TrackCreator}" includes="**/*.jar"/>
+        <fx:application id="TrackCreator_id" name="TrackCreator" mainClass="ru.phoenix.trackcreator.Main"/>
+
+        <fx:jar destfile="${artifact.temp.output.TrackCreator}\TrackCreator.jar">
+            <fx:application refid="TrackCreator_id"/>
+            <fileset dir="${artifact.temp.output.TrackCreator}" excludes="**/*.jar"/>
+            <fx:resources>
+                <fx:fileset refid="all_but_TrackCreator"/>
+            </fx:resources>
+            <manifest/>
+        </fx:jar>
+
+        <fx:deploy width="600" height="400" updatemode="background" outdir="${artifact.temp.output.TrackCreator}\deploy" outfile="TrackCreator" nativeBundles="all">
+            <fx:application refid="TrackCreator_id"/>
+            <fx:permissions elevated="true" cacheCertificates="true"/>
+            <fx:info title="${app.title}" vendor="${app.vendor}">
+                <fx:icon href="${module.trackcreator.basedir}/src/main/resources/images/trackcreator.ico"/>
+            </fx:info>
+            <fx:resources>
+                <fx:fileset refid="all_TrackCreator"/>
+                <fx:fileset dir="${basedir}/libs" includes="*.jar"/>
+            </fx:resources>
+        </fx:deploy>
+
+        <copy todir="${artifact.output.trackcreator}">
+            <fileset dir="${artifact.temp.output.TrackCreator}/deploy"/>
+        </copy>
+
+        <delete includeemptydirs="true">
+            <fileset dir="${artifact.temp.output.TrackCreator}"/>
+        </delete>
+
+    </target>
+
+    <target name="build.all.artifacts" depends="artifact.trackcreator" description="Build all artifacts">
+        <!-- Delete temporary files -->
+        <delete dir="${artifacts.temp.dir}"/>
+        <delete dir="${classes.dir}"/>
+    </target>
+
+    <target name="all" depends="build.modules, build.all.artifacts" description="build all"/>
+
+</project>
