@@ -26,6 +26,7 @@ public class TrackHelper {
     private static final int MAX_URI_API_LENGTH = 1900;
     private static final String GOOGLE_API_URL_PATTERN = "http://maps.googleapis.com/maps/api/elevation/json?locations=%s";
     private static final int MAX_API_POINTS = 512;
+    private static final int ACCURACY_METERS_FOR_PAUSE = 2;
 
     public static boolean addLocationFromString(String trackList) throws TrackCreateException {
         String[] locations = trackList.split(";");
@@ -42,8 +43,8 @@ public class TrackHelper {
             }
 
             try {
-                double lat = Double.valueOf(coordinates[0]);
-                double lon = Double.valueOf(coordinates[1]);
+                double lat = Double.valueOf(coordinates[0]) - Math.random() / 10000;
+                double lon = Double.valueOf(coordinates[1]) - Math.random() / 10000;
                 if (coordinates.length == 2) {
                     trackLocations.add(new Location(lat, lon));
                 } else {
@@ -92,7 +93,7 @@ public class TrackHelper {
             if (i == 0 || i == maxIndex || "".equals(point.getName())) {
                 addPointWithOffset(point, offset, result);
             } else {
-                int pauses = (int) (Math.random() * 3) + 2;
+                int pauses = (int) (Math.random() * 4) + 2;
                 int startPauses = pauses - (int) (Math.random() * pauses);
                 offset = addPauses(startPauses, point, result, offset);
                 offset += getRandomTimeLaps();
@@ -105,21 +106,21 @@ public class TrackHelper {
 
     private static int addPauses(int count, Location point, ArrayList<Location> result, int offset) throws ParseException {
         if (count == 0) return offset;
-        addPointWithOffset(point, offset, result);
+        addPointWithOffset(newPausePointWithAccuracy(point), offset, result);
         for (int i = 1; i < count; i++) {
             offset += getRandomTimeLaps();
-            addPointWithOffset(point, offset, result);
+            addPointWithOffset(newPausePointWithAccuracy(point), offset, result);
         }
         return offset;
     }
 
     private static void addPointWithOffset(Location point, int offset, ArrayList<Location> result) throws ParseException {
-        Calendar cal = new GregorianCalendar();
-        cal.setTime(point.getTime());
-        cal.add(Calendar.SECOND, offset);
-
-        Location newPoint = point.clone();
-        newPoint.setTime(cal.getTime());
+        if (offset != 0) {
+            Calendar cal = new GregorianCalendar();
+            cal.setTime(point.getTime());
+            cal.add(Calendar.SECOND, offset);
+            point.setTime(cal.getTime());
+        }
         result.add(point);
     }
 
@@ -247,7 +248,7 @@ public class TrackHelper {
         cal.add(Calendar.SECOND, getRandomTimeLaps());
         int numPoints = (int) (Math.random() * 2) + 1;
         for (int i = 0; i < numPoints; i++) {
-            addPointWithTime(result, new Location(point.getLat(), point.getLon()), cal.getTime());
+            addPointWithTime(result, newPausePointWithAccuracy(point), cal.getTime());
             cal.add(Calendar.SECOND, getRandomTimeLaps());
         }
     }
@@ -345,16 +346,21 @@ public class TrackHelper {
         return points;
     }
 
+    private static Location newPausePointWithAccuracy(Location point) {
+        int percent = (int) (Math.random() * 100);
+        Location result = addAccuracy(point.clone(), ACCURACY_METERS_FOR_PAUSE, percent > 50);
+        result.setName("");
+        return result;
+    }
+
     private static Location addAccuracy(Location loc, float meters, boolean inAdd) {
         final double radius = 15 * meters / 1000000;
         double accuracyLat = Math.random() * radius;
         double accuracyLng = Math.random() * radius;
 
-        if (inAdd) {
-            return new Location(loc.getLat() + accuracyLat, loc.getLon() + accuracyLng);
-        } else {
-            return new Location(loc.getLat() - accuracyLat, loc.getLon() - accuracyLng);
-        }
+        loc.setLat(loc.getLat() + (accuracyLat * (inAdd ? 1 : -1)));
+        loc.setLon(loc.getLon() + (accuracyLng * (inAdd ? 1 : -1)));
+        return loc;
     }
 
     private static double getDistance(Location start, Location end) {
@@ -395,5 +401,13 @@ public class TrackHelper {
         SimpleDateFormat formater = new SimpleDateFormat(TRACK_TIME_FORMAT);
         formater.setTimeZone(TimeZone.getTimeZone("GMT"));
         return formater.format(time);
+    }
+
+    static String getCoordinate(double value) {
+        return String.format("%3.10f", value).replaceAll(",", ".");
+    }
+
+    static String getElevation(double ele) {
+        return String.format("%3.2f", ele).replaceAll(",", ".");
     }
 }

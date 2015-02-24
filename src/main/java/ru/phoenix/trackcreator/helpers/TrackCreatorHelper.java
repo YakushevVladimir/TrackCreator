@@ -3,7 +3,6 @@ package ru.phoenix.trackcreator.helpers;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import ru.phoenix.trackcreator.entity.Location;
-import ru.phoenix.trackcreator.entity.Point;
 import ru.phoenix.trackcreator.entity.SurveyData;
 import ru.phoenix.trackcreator.exceptions.TrackCreateException;
 
@@ -18,35 +17,23 @@ import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 
 /**
  * @author Vladimir Yakushev
  * @version 1.0
  */
 public class TrackCreatorHelper {
-    private List<Point> points;
 
-    public TrackCreatorHelper(List<Point> points) {
-        this.points = points;
-    }
-
-    public static void saveTrack(ArrayList<Location> track, String path) {
-
-    }
-
-    public void save(String dirPath, Date trackDate, boolean createTrackPoints) throws TrackCreateException {
+    public static void saveTrack(ArrayList<Location> track, Date trackDate, String dirPath) throws TrackCreateException {
         File filesDir = new File(dirPath);
         if (!filesDir.exists()) {
             throw new TrackCreateException("Указанная папка для сохранения файлов не найдена");
         }
-        createTrack(filesDir, trackDate);
-        if (createTrackPoints) {
-            createTrackPoints(filesDir, trackDate);
-        }
+        createTrack(track, trackDate, filesDir);
+        createTrackPoints(track, trackDate, filesDir);
     }
 
-    private void createTrack(File filesDir, Date trackDate) throws TrackCreateException {
+    private static void createTrack(ArrayList<Location> points, Date trackDate, File filesDir) throws TrackCreateException {
         try {
             DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
             DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
@@ -54,7 +41,6 @@ public class TrackCreatorHelper {
 
             Element rootElement = doc.createElement("gpx");
             rootElement.setAttributeNS("http://www.w3.org/2000/xmlns/", "xmlns", "http://www.topografix.com/GPX/1/1");
-            rootElement.setAttributeNS("http://www.w3.org/2000/xmlns/", "xmlns:gpxx", "http://www.garmin.com/xmlschemas/GpxExtensions/v3");
             rootElement.setAttributeNS("http://www.w3.org/2000/xmlns/", "xmlns:gpxx", "http://www.garmin.com/xmlschemas/GpxExtensions/v3");
             rootElement.setAttributeNS("http://www.w3.org/2000/xmlns/", "xmlns:gpxtpx", "http://www.garmin.com/xmlschemas/TrackPointExtension/v1");
             rootElement.setAttribute("creator", SurveyData.instance.getTrackDevice());
@@ -80,7 +66,7 @@ public class TrackCreatorHelper {
             createChild(doc, link, "text").setTextContent("Garmin International");
 
             // metadata -> time elements
-            createChild(doc, metadata, "time").setTextContent(points.get(points.size() - 1).getTime());
+            createChild(doc, metadata, "time").setTextContent(TrackHelper.getTrackTime(points.get(points.size() - 1).getTime()));
 
             Element trk = createChild(doc, rootElement, "trk");
 
@@ -92,13 +78,13 @@ public class TrackCreatorHelper {
             gpxx_DisplayColor.setTextContent("Black");
 
             Element trkseg = createChild(doc, trk, "trkseg");
-            for (Point point : points) {
+            for (Location point : points) {
                 Element trkpt = createChild(doc, trkseg, "trkpt");
-                trkpt.setAttribute("lat", point.getLat());
-                trkpt.setAttribute("lon", point.getLon());
+                trkpt.setAttribute("lat", TrackHelper.getCoordinate(point.getLat()));
+                trkpt.setAttribute("lon", TrackHelper.getCoordinate(point.getLon()));
 
-                createChild(doc, trkpt, "ele").setTextContent(point.getEle());
-                createChild(doc, trkpt, "time").setTextContent(point.getTime());
+                createChild(doc, trkpt, "ele").setTextContent(TrackHelper.getElevation(point.getEle()));
+                createChild(doc, trkpt, "time").setTextContent(TrackHelper.getTrackTime(point.getTime()));
 
                 final int trackCad = SurveyData.instance.getTrackCad();
                 if (trackCad > 0) {
@@ -117,13 +103,13 @@ public class TrackCreatorHelper {
         }
     }
 
-    private String getTrackName(Date trackDate) {
+    private static String getTrackName(Date trackDate) {
         return String.format("%s_%s", SurveyData.instance.getTrackName(), new SimpleDateFormat("dd-MMM-yy").format(trackDate));
     }
 
-    private void createTrackPoints(File filesDir, Date trackDate) throws TrackCreateException {
-        ArrayList<Point> wayPoints = new ArrayList<Point>();
-        for (Point point : points) {
+    private static void createTrackPoints(ArrayList<Location> points, Date trackDate, File filesDir) throws TrackCreateException {
+        ArrayList<Location> wayPoints = new ArrayList<Location>();
+        for (Location point : points) {
             if ("".equals(point.getName())) {
                 continue;
             }
@@ -163,17 +149,17 @@ public class TrackCreatorHelper {
             Element link = createChild(doc, metadata, "link");
             link.setAttribute("href", "http://www.garmin.com");
             createChild(doc, link, "text").setTextContent("Garmin International");
-            createChild(doc, metadata, "time").setTextContent(points.get(points.size() - 1).getTime());
+            createChild(doc, metadata, "time").setTextContent(TrackHelper.getTrackTime(points.get(points.size() - 1).getTime()));
 
             // wpt element
 
-            for (Point point : wayPoints) {
+            for (Location point : wayPoints) {
                 Element wpt = createChild(doc, rootElement, "wpt");
-                wpt.setAttribute("lat", point.getLat());
-                wpt.setAttribute("lon", point.getLon());
+                wpt.setAttribute("lat", TrackHelper.getCoordinate(point.getLat()));
+                wpt.setAttribute("lon", TrackHelper.getCoordinate(point.getLon()));
 
-                createChild(doc, wpt, "ele").setTextContent(point.getEle());
-                createChild(doc, wpt, "time").setTextContent(point.getTime());
+                createChild(doc, wpt, "ele").setTextContent(TrackHelper.getElevation(point.getEle()));
+                createChild(doc, wpt, "time").setTextContent(TrackHelper.getTrackTime(point.getTime()));
                 createChild(doc, wpt, "name").setTextContent(point.getName());
                 createChild(doc, wpt, "sym").setTextContent("Flag, Blue");
             }
@@ -190,7 +176,7 @@ public class TrackCreatorHelper {
         }
     }
 
-    private void saveGpxFile(Document doc, File wayPointFile) throws TransformerException {
+    private static void saveGpxFile(Document doc, File wayPointFile) throws TransformerException {
         TransformerFactory transformerFactory = TransformerFactory.newInstance();
         Transformer transformer = transformerFactory.newTransformer();
         DOMSource source = new DOMSource(doc);
@@ -198,7 +184,7 @@ public class TrackCreatorHelper {
         transformer.transform(source, result);
     }
 
-    private Element createChild(Document doc, Element parent, String childName) {
+    private static Element createChild(Document doc, Element parent, String childName) {
         Element result = doc.createElement(childName);
         parent.appendChild(result);
         return result;

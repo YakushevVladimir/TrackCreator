@@ -78,7 +78,7 @@ public class SurveyData {
     public ArrayList<Location> getBaseTrack() {
         ArrayList<Location> result = new ArrayList<Location>();
         for (Location loc : baseTrack) {
-            result.add((Location) loc.clone());
+            result.add(loc.clone());
         }
         return result;
     }

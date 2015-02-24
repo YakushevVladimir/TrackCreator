@@ -105,11 +105,13 @@ public class ThirdPage extends WizardPage {
                 try {
                     TrackCreatorHelper.saveTrack(
                             TrackHelper.addRandomPauseForNamedPoints(trackPoints2),
+                            SurveyData.instance.getTrackDate2(),
                             saveDir.getText()
                     );
 
                     TrackCreatorHelper.saveTrack(
-                            TrackHelper.addRandomPauseForNamedPoints(SurveyData.instance.getTrackPoints1()),
+                            SurveyData.instance.getTrackPoints1(),
+                            SurveyData.instance.getTrackDate1(),
                             saveDir.getText()
                     );
                     viewAlertDialog(title, "Файл успешно создан и сохранен");

@@ -1,5 +1,6 @@
 package ru.phoenix.trackcreator.entity;
 
+import java.text.SimpleDateFormat;
 import java.util.Date;
 
 /**
@@ -56,6 +57,14 @@ public class Location {
         return time;
     }
 
+    public void setLat(double lat) {
+        this.lat = lat;
+    }
+
+    public void setLon(double lon) {
+        this.lon = lon;
+    }
+
     public void setName(String name) {
         this.name = name;
     }
@@ -87,6 +96,7 @@ public class Location {
         return "Location{" +
                 "lat=" + lat +
                 ", lon=" + lon +
+                ", time=" + new SimpleDateFormat("yy.MM.dd HH:mm:ss").format(time) +
                 ", name='" + name + '\'' +
                 '}';
     }
