@@ -20,6 +20,7 @@
             <TableColumn fx:id="lat" editable="false" maxWidth="200.0" minWidth="50.0" prefWidth="100.0" sortable="false" text="Широта" />
             <TableColumn fx:id="lng" editable="false" maxWidth="200.0" minWidth="50.0" prefWidth="100.0" sortable="false" text="Долгота" />
             <TableColumn fx:id="name" prefWidth="150.0" text="Имя" />
+            <TableColumn fx:id="offset" prefWidth="50.0" text="Пауза" />
         </columns>
       </TableView>
       <HBox>

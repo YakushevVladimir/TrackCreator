@@ -10,7 +10,6 @@ import javafx.scene.Parent;
 import javafx.scene.control.*;
 import javafx.scene.input.KeyEvent;
 import javafx.stage.FileChooser;
-import ru.phoenix.trackcreator.exceptions.TrackCreateException;
 import ru.phoenix.trackcreator.helpers.TrackHelper;
 import ru.phoenix.trackcreator.ui.WizardPage;
 

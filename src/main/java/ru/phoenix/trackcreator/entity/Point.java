@@ -3,8 +3,6 @@ package ru.phoenix.trackcreator.entity;
 import javafx.beans.property.SimpleStringProperty;
 import ru.phoenix.trackcreator.helpers.TrackHelper;
 
-import java.util.Date;
-
 /**
 * @author Vladimir Yakushev
 * @version 1.0
@@ -16,6 +14,7 @@ public class Point {
     private final SimpleStringProperty ele;
     private final SimpleStringProperty time;
     private final SimpleStringProperty name;
+    private final SimpleStringProperty offset;
 
     public Point(Location location) {
         this.location = location;
@@ -24,6 +23,7 @@ public class Point {
         this.ele = new SimpleStringProperty(String.format("%3.2f", location.getEle()).replaceAll(",", "."));
         this.time = new SimpleStringProperty(TrackHelper.getTrackTime(location.getTime()));
         this.name = new SimpleStringProperty(location.getName());
+        this.offset = new SimpleStringProperty("");
     }
 
     public String getLat() {
@@ -46,6 +46,14 @@ public class Point {
         return name.get();
     }
 
+    public int getOffset() {
+        try {
+            return Integer.parseInt(offset.get());
+        } catch (Exception ex) {
+            return 0;
+        }
+    }
+
     public Location getLocation() {
         return location;
     }
@@ -56,6 +64,15 @@ public class Point {
         }
         this.name.set(name);
         location.setName(name);
+    }
+
+    public void setOffset(String offset) {
+        try {
+            int value = Integer.valueOf(offset.replaceAll("\\D", ""));
+            this.offset.set(String.valueOf(value));
+        } catch (Exception ex) {
+            this.offset.set("");
+        }
     }
 
     public SimpleStringProperty eleProperty() {
@@ -76,5 +93,9 @@ public class Point {
 
     public SimpleStringProperty timeProperty() {
         return time;
+    }
+
+    public SimpleStringProperty offsetProperty() {
+        return offset;
     }
 }

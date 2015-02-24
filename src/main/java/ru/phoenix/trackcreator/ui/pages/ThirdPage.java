@@ -23,7 +23,6 @@ import ru.phoenix.trackcreator.ui.WizardPage;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Date;
 
 /**
@@ -37,6 +36,7 @@ public class ThirdPage extends WizardPage {
     @FXML private TableColumn<Point, Double> lat;
     @FXML private TableColumn<Point, Double> lng;
     @FXML private TableColumn<Point, String> name;
+    @FXML private TableColumn<Point, String> offset;
 
     @FXML private TextField saveDir;
     @FXML private Button choiseDir;
@@ -80,6 +80,16 @@ public class ThirdPage extends WizardPage {
             }
         });
 
+        offset.setCellValueFactory(new PropertyValueFactory<Point, String>("offset"));
+        offset.setCellFactory(TextFieldTableCell.<Point>forTableColumn());
+        offset.setOnEditCommit(new EventHandler<TableColumn.CellEditEvent<Point, String>>() {
+            @Override
+            public void handle(TableColumn.CellEditEvent<Point, String> event) {
+                Point point = event.getTableView().getItems().get(event.getTablePosition().getRow());
+                point.setOffset(event.getNewValue());
+            }
+        });
+
         choiseDir.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(final ActionEvent event) {
@@ -95,16 +105,10 @@ public class ThirdPage extends WizardPage {
         save.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
-                ArrayList<Location> trackPoints2 = SurveyData.instance.getTrackPoints2();
-                trackPoints2.clear();
-                for (Point point : data) {
-                    trackPoints2.add(point.getLocation());
-                }
-
                 String title = "Создания файла трека";
                 try {
                     TrackCreatorHelper.saveTrack(
-                            TrackHelper.addRandomPauseForNamedPoints(trackPoints2),
+                            TrackHelper.getTrackWithPause(data),
                             SurveyData.instance.getTrackDate2(),
                             saveDir.getText()
                     );

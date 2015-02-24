@@ -4,12 +4,12 @@ import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import ru.phoenix.trackcreator.entity.GoogleApiResponse;
 import ru.phoenix.trackcreator.entity.Location;
+import ru.phoenix.trackcreator.entity.Point;
 import ru.phoenix.trackcreator.entity.SurveyData;
 import ru.phoenix.trackcreator.exceptions.TrackCreateException;
 
 import java.io.*;
 import java.lang.String;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.ArrayList;
@@ -84,37 +84,29 @@ public class TrackHelper {
         }
     }
 
-    public static ArrayList<Location> addRandomPauseForNamedPoints(ArrayList<Location> track) throws ParseException {
+    public static ArrayList<Location> getTrackWithPause(List<Point> track) {
         ArrayList<Location> result = new ArrayList<Location>();
         int offset = 0;
         int maxIndex = track.size() - 1;
         for (int i = 0; i < track.size(); i++) {
-            Location point = track.get(i);
-            if (i == 0 || i == maxIndex || "".equals(point.getName())) {
-                addPointWithOffset(point, offset, result);
+            Point point = track.get(i);
+            if (i == 0 || i == maxIndex || point.getOffset() == 0) {
+                addPointWithOffset(point.getLocation(), offset, result);
             } else {
-                int pauses = (int) (Math.random() * 4) + 2;
-                int startPauses = pauses - (int) (Math.random() * pauses);
-                offset = addPauses(startPauses, point, result, offset);
-                offset += getRandomTimeLaps();
-                addPointWithOffset(point, offset, result);
-                offset = addPauses(pauses - startPauses, point, result, offset);
+                int trackPause = point.getOffset();
+                while (trackPause > 0) {
+                    addPointWithOffset(newPausePoint(point.getLocation()), offset, result);
+                    int pause = Math.min(getRandomTimeLaps(), trackPause);
+                    offset += pause;
+                    trackPause -= pause;
+                }
+                addPointWithOffset(point.getLocation(), offset, result);
             }
         }
-        return track;
+        return result;
     }
 
-    private static int addPauses(int count, Location point, ArrayList<Location> result, int offset) throws ParseException {
-        if (count == 0) return offset;
-        addPointWithOffset(newPausePointWithAccuracy(point), offset, result);
-        for (int i = 1; i < count; i++) {
-            offset += getRandomTimeLaps();
-            addPointWithOffset(newPausePointWithAccuracy(point), offset, result);
-        }
-        return offset;
-    }
-
-    private static void addPointWithOffset(Location point, int offset, ArrayList<Location> result) throws ParseException {
+    private static void addPointWithOffset(Location point, int offset, ArrayList<Location> result) {
         if (offset != 0) {
             Calendar cal = new GregorianCalendar();
             cal.setTime(point.getTime());
@@ -259,7 +251,7 @@ public class TrackHelper {
     }
 
     private static int getRandomTimeLaps() {
-        return (int) (Math.random() * 15) + 5;
+        return (int) (Math.random() * 20) + 5;
     }
 
     private static ArrayList<Location> splitTrackAtPointsDistance(ArrayList<Location> points, float pointsDist, float accuracyInMeters) {
@@ -344,6 +336,12 @@ public class TrackHelper {
         }
 
         return points;
+    }
+
+    private static Location newPausePoint(Location point) {
+        Location result = point.clone();
+        result.setName("");
+        return result;
     }
 
     private static Location newPausePointWithAccuracy(Location point) {
