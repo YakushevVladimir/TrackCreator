@@ -8,11 +8,9 @@ import ru.phoenix.trackcreator.entity.Point;
 import ru.phoenix.trackcreator.entity.SurveyData;
 import ru.phoenix.trackcreator.exceptions.TrackCreateException;
 
-import java.io.*;
-import java.lang.String;
+import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.ArrayList;
 
 /**
  * @author Vladimir Yakushev
@@ -21,12 +19,13 @@ import java.util.ArrayList;
 public class TrackHelper {
 
     public static final String TRACK_TIME_FORMAT = "yyyy-MM-dd'T'HH:mm:ss'Z'";
-    public static final String POINT_NAMES_HASH_PATTERN = "%s_%s";
+    public static final String POINT_NAMES_HASH_PATTERN = "%3.8f,%3.8f";
 
     private static final int MAX_URI_API_LENGTH = 1900;
     private static final String GOOGLE_API_URL_PATTERN = "http://maps.googleapis.com/maps/api/elevation/json?locations=%s";
     private static final int MAX_API_POINTS = 512;
     private static final int ACCURACY_METERS_FOR_PAUSE = 2;
+    private static HashMap<String, Double> elePoints = new HashMap<String, Double>();
 
     public static boolean addLocationFromString(String trackList) throws TrackCreateException {
         String[] locations = trackList.split(";");
@@ -91,16 +90,18 @@ public class TrackHelper {
         for (int i = 0; i < track.size(); i++) {
             Point point = track.get(i);
             if (i == 0 || i == maxIndex || point.getOffset() == 0) {
-                addPointWithOffset(point.getLocation(), offset, result);
+                addPointWithOffset(point.getLocation().clone(), offset, result);
             } else {
                 int trackPause = point.getOffset();
                 while (trackPause > 0) {
-                    addPointWithOffset(newPausePoint(point.getLocation()), offset, result);
+                    Location pausePoint = point.getLocation().clone();
+                    pausePoint.setName("");
+                    addPointWithOffset(pausePoint, offset, result);
                     int pause = Math.min(getRandomTimeLaps(), trackPause);
                     offset += pause;
                     trackPause -= pause;
                 }
-                addPointWithOffset(point.getLocation(), offset, result);
+                addPointWithOffset(point.getLocation().clone(), offset, result);
             }
         }
         return result;
@@ -123,6 +124,8 @@ public class TrackHelper {
             throw new TrackCreateException("В указанном файле недостаточно маршрутных точек для прокладки маршрута!");
         }
 
+        elePoints.clear();
+
         // Построение трека
 
         // дробим маршрут между двумя точками на отрезки с отклонением в заданном радиусе
@@ -144,27 +147,29 @@ public class TrackHelper {
             if (counter == maxIndex) break;
             counter = Math.min(maxIndex, counter + 5);
         }
-        ArrayList<Location> elePoints = getElevation(points);
+        getElevation(points);
 
         // Создаем маршрут первого дня
         trackPoints =  SurveyData.instance.getBaseTrack();
+        addAccuracy(trackPoints.get(0), 2, true);
+        addAccuracy(trackPoints.get(trackPoints.size() - 1), 2, true);
         trackPoints = splitTrackAtPointsDistance(trackPoints, 1, 1);
         SurveyData.instance.setTrackPoints1(getElevation(
-                createFinalTrack(SurveyData.instance.getTrackDate1(), trackPoints, elePoints)));
+                createFinalTrack(SurveyData.instance.getTrackDate1(), trackPoints)));
 
         // Создаем маршрут второго дня
         trackPoints =  SurveyData.instance.getBaseTrack();
         trackPoints = splitTrackAtPointsDistance(trackPoints, 1, 1);
         SurveyData.instance.setTrackPoints2(getElevation(
-                createFinalTrack(SurveyData.instance.getTrackDate2(), trackPoints, elePoints)));
+                createFinalTrack(SurveyData.instance.getTrackDate2(), trackPoints)));
 
         return true;
     }
 
-    private static ArrayList<Location> createFinalTrack(Date startTime, ArrayList<Location> baseTrack, ArrayList<Location> elePoints) {
+    private static ArrayList<Location> createFinalTrack(Date startTime, ArrayList<Location> baseTrack) {
         ArrayList<Location> result = new ArrayList<Location>();
 
-        double prevEle = elePoints.get(0).getEle();
+        double prevEle = elePoints.size() > 0 ? elePoints.values().iterator().next() : 0;
         double currEle = prevEle;
 
         // средняя скорость в м/с
@@ -180,11 +185,12 @@ public class TrackHelper {
             Location point = baseTrack.get(counter);
 
             // Читаем высоту текущей точки
-            int index = elePoints.indexOf(point);
-            if (index >= 0) {
+            String key = getPointNamesKey(point);
+            if (elePoints.containsKey(key)) {
                 prevEle = currEle;
-                currEle = elePoints.get(index).getEle();
+                currEle = elePoints.get(key);
             }
+            point.setEle(currEle);
 
             // Добавляем или пропускаем точку в зависимости от условий
 
@@ -192,7 +198,7 @@ public class TrackHelper {
                 // Добавляем время разгона или остановки для начальной
                 // и конечной точек маршрута
                 if (counter == 0) addPointWithTime(result, point, cal.getTime());
-                addPauseInTrack(result, cal, new Location(point.getLat(), point.getLon()));
+                addPauseInTrack(result, cal, new Location(point.getLat(), point.getLon(), point.getEle()));
                 if (counter == maxIndex) addPointWithTime(result, point, cal.getTime());
                 counter++;
                 continue;
@@ -232,7 +238,7 @@ public class TrackHelper {
         addPointWithTime(result, point, cal.getTime());
         double percent = Math.random() * 100;
         if (percent > 95) {
-            addPauseInTrack(result, cal, new Location(point.getLat(), point.getLon()));
+            addPauseInTrack(result, cal, new Location(point.getLat(), point.getLon(), point.getEle()));
         }
     }
 
@@ -260,14 +266,14 @@ public class TrackHelper {
         }
 
         ArrayList<Location> result = new ArrayList<Location>();
-        result.add(points.get(0));
+        result.add(addAccuracy(points.get(0).clone(), accuracyInMeters, true));
         for (int i = 1; i < points.size(); i++) {
             Location startPoint = points.get(i - 1);
             Location endPoint = points.get(i);
 
             int amount = (int) (getDistance(startPoint, endPoint) * 1000 / pointsDist);
             result.addAll(splitTrack(startPoint, endPoint, amount, accuracyInMeters));
-            result.add(endPoint);
+            result.add(addAccuracy(endPoint.clone(), accuracyInMeters, false));
         }
 
         return result;
@@ -282,7 +288,7 @@ public class TrackHelper {
         double curLat = start.getLat();
         double curLon = start.getLon();
         boolean inAdd = true;
-        float ch = ((float) amount) / 4;
+        float ch = amount > 10 ? ((float) amount) / 4 : amount;
         int counter = 0;
         for (int i = 0; i < (amount - 1); i++) {
             curLat += latStep;
@@ -301,19 +307,25 @@ public class TrackHelper {
     }
 
     private static ArrayList<Location> getElevation(ArrayList<Location> points) throws TrackCreateException {
-        HashMap<String, Location> elePoints = new HashMap<String, Location>();
+
+        if (points.size() == 0) {
+            return points;
+        }
+
+        // Заполним высотные данные для координат
+
         int counter = 0;
         StringBuilder builder = new StringBuilder();
         for (Location point : points) {
+            String key = getPointNamesKey(point);
+            if (elePoints.containsKey(key)) {
+                continue;
+            }
+
             if (counter != 0) {
                 builder.append("|");
             }
-            builder.append(point.getLat()).append(",").append(point.getLon());
-
-            final String key = getPointNamesKey(point);
-            if (!elePoints.containsKey(key)) {
-                elePoints.put(key, point);
-            }
+            builder.append(key);
 
             counter++;
             if (counter == MAX_API_POINTS || builder.length() > MAX_URI_API_LENGTH) {
@@ -326,22 +338,18 @@ public class TrackHelper {
             getElevationsFromApi(elePoints, builder.toString());
         }
 
-        double lastEle = 0;
+        // Установим координаты для точек маршрута
+
+        double lastEle = elePoints.values().iterator().next();
         for (Location point : points) {
-            Location pointWithEle = elePoints.get(getPointNamesKey(point));
-            if (pointWithEle != null && pointWithEle.getEle() > 0) {
-                lastEle = pointWithEle.getEle();
+            double pointWithEle = elePoints.get(getPointNamesKey(point));
+            if (pointWithEle > 0) {
+                lastEle = pointWithEle;
             }
             point.setEle(lastEle);
         }
 
         return points;
-    }
-
-    private static Location newPausePoint(Location point) {
-        Location result = point.clone();
-        result.setName("");
-        return result;
     }
 
     private static Location newPausePointWithAccuracy(Location point) {
@@ -372,15 +380,13 @@ public class TrackHelper {
         return  (float) earthRadius * c;
     }
 
-    private static void getElevationsFromApi(HashMap<String, Location> newLocationPoints, String points) throws TrackCreateException {
+    private static void getElevationsFromApi(HashMap<String, Double> elePoints, String points) throws TrackCreateException {
         String response = HttpHelper.sendGet(String.format(GOOGLE_API_URL_PATTERN, points));
         try {
             GoogleApiResponse obj = new Gson().fromJson(response, GoogleApiResponse.class);
             for (GoogleApiResponse.Result result : obj.results) {
                 String key = getPointNamesKey(result.location.lat, result.location.lng);
-                if (newLocationPoints.containsKey(key)) {
-                    newLocationPoints.get(key).setEle(result.elevation);
-                }
+                elePoints.put(key, result.elevation);
             }
         } catch (JsonSyntaxException ex) {
             throw new TrackCreateException("Ошибка чтения файла с данными о высоте над уровнем моря для точек маршрута");
@@ -392,7 +398,7 @@ public class TrackHelper {
     }
 
     private static String getPointNamesKey(double lat, double lon) {
-        return String.format(POINT_NAMES_HASH_PATTERN, lat, lon);
+        return String.format(Locale.ENGLISH, POINT_NAMES_HASH_PATTERN, lat, lon);
     }
 
     public static String getTrackTime(Date time) {
@@ -401,11 +407,11 @@ public class TrackHelper {
         return formater.format(time);
     }
 
-    static String getCoordinate(double value) {
-        return String.format("%3.10f", value).replaceAll(",", ".");
+    public static String getCoordinate(double value) {
+        return String.format(Locale.ENGLISH, "%3.10f", value);
     }
 
-    static String getElevation(double ele) {
-        return String.format("%3.2f", ele).replaceAll(",", ".");
+    public static String getElevation(double ele) {
+        return String.format(Locale.ENGLISH, "%3.2f", ele);
     }
 }

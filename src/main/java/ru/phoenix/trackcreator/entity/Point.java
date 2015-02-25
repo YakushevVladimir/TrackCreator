@@ -18,9 +18,9 @@ public class Point {
 
     public Point(Location location) {
         this.location = location;
-        this.lat = new SimpleStringProperty(String.format("%3.10f", location.getLat()).replaceAll(",", "."));
-        this.lng = new SimpleStringProperty(String.format("%3.10f", location.getLon()).replaceAll(",", "."));
-        this.ele = new SimpleStringProperty(String.format("%3.2f", location.getEle()).replaceAll(",", "."));
+        this.lat = new SimpleStringProperty(TrackHelper.getCoordinate(location.getLat()));
+        this.lng = new SimpleStringProperty(TrackHelper.getCoordinate(location.getLon()));
+        this.ele = new SimpleStringProperty(TrackHelper.getElevation(location.getEle()));
         this.time = new SimpleStringProperty(TrackHelper.getTrackTime(location.getTime()));
         this.name = new SimpleStringProperty(location.getName());
         this.offset = new SimpleStringProperty("");

@@ -20,7 +20,7 @@ public class Main extends Application {
         stage.setScene(new Scene(new SurveyWizard(stage), 600, 300));
         stage.setMinHeight(300);
         stage.setMinWidth(600);
-        stage.setTitle("TrackCreator 1.2");
+        stage.setTitle("TrackCreator 2.3");
         stage.getIcons().add(new
                 Image(getClass().getClassLoader().getResourceAsStream("images/trackcreator.png")));
         stage.show();

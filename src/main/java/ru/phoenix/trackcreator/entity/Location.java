@@ -8,6 +8,7 @@ import java.util.Date;
 * @version 1.0
 */
 public class Location {
+
     private double lat;
     private double lon;
     private double ele;
@@ -15,21 +16,25 @@ public class Location {
     private String name;
 
     public Location(double lat, double lon) {
-        this(lat, lon, "", 0d);
+        this(lat, lon, 0d, "");
+    }
+
+    public Location(double lat, double lon, double ele) {
+        this(lat, lon, ele, "");
     }
 
     public Location(double lat, double lon, String name) {
-        this(lat, lon, name, 0d);
+        this(lat, lon, 0d, name);
     }
 
-    public Location(double lat, double lon, String name, double ele) {
+    public Location(double lat, double lon, double ele, String name) {
         this.lat = lat;
         this.lon = lon;
         this.name = name;
         this.ele = ele;
     }
 
-    public Location(double lat, double lon, String name, double ele, Date time) {
+    public Location(double lat, double lon, double ele, Date time, String name) {
         this.lat = lat;
         this.lon = lon;
         this.name = name;
@@ -79,16 +84,7 @@ public class Location {
 
     @Override
     public Location clone() {
-        return new Location(lat, lon, name, ele, time);
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (obj instanceof Location) {
-            Location loc = (Location) obj;
-            return this.lat == loc.getLat() && this.lon == loc.getLon();
-        }
-        return false;
+        return new Location(lat, lon, ele, time, name);
     }
 
     @Override
