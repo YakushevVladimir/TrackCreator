@@ -42,11 +42,13 @@ public class TrackHelper {
             }
 
             try {
-                double lat = Double.valueOf(coordinates[0]) - Math.random() / 10000;
-                double lon = Double.valueOf(coordinates[1]) - Math.random() / 10000;
+                double lat = Double.valueOf(coordinates[0]);
+                double lon = Double.valueOf(coordinates[1]);
                 if (coordinates.length == 2) {
+                    // Есть только данные о координатах
                     trackLocations.add(new Location(lat, lon));
                 } else {
+                    // Есть данные о координатах и имени точки
                     Location location = new Location(lat, lon, coordinates[2]);
                     trackLocations.add(location);
                 }
@@ -151,8 +153,6 @@ public class TrackHelper {
 
         // Создаем маршрут первого дня
         trackPoints =  SurveyData.instance.getBaseTrack();
-        addAccuracy(trackPoints.get(0), 2, true);
-        addAccuracy(trackPoints.get(trackPoints.size() - 1), 2, true);
         trackPoints = splitTrackAtPointsDistance(trackPoints, 1, 1);
         SurveyData.instance.setTrackPoints1(getElevation(
                 createFinalTrack(SurveyData.instance.getTrackDate1(), trackPoints)));
@@ -266,14 +266,14 @@ public class TrackHelper {
         }
 
         ArrayList<Location> result = new ArrayList<Location>();
-        result.add(addAccuracy(points.get(0).clone(), accuracyInMeters, true));
+        result.add(points.get(0).clone());
         for (int i = 1; i < points.size(); i++) {
             Location startPoint = points.get(i - 1);
             Location endPoint = points.get(i);
 
             int amount = (int) (getDistance(startPoint, endPoint) * 1000 / pointsDist);
             result.addAll(splitTrack(startPoint, endPoint, amount, accuracyInMeters));
-            result.add(addAccuracy(endPoint.clone(), accuracyInMeters, false));
+            result.add(endPoint.clone());
         }
 
         return result;
